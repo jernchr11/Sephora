@@ -1,0 +1,26 @@
+from scrapy.spider import Spider
+from scrapy.selector import Selector
+import json
+
+from tutorial.items import SephoraItem
+
+class DmozSpider(Spider):
+    name = "dmoz"
+    allowed_domains = ["http://www.sephora.com"]
+    start_urls = [
+        "http://www.sephora.com/makeup-primer-face-primer?defaultSortBy=-1&pageSize=-1"
+    ]
+
+    def parse(self, response):
+        sel = Selector(response)
+        products = json.loads("{"+sel.re("\"products\":\[.*\]")[0]+"}")
+        items = []
+        for product in products["products"]:
+            #print(product)
+            item = SephoraItem()
+            item['display_name'] = product["display_name"]
+            item['list_price'] = product["derived_sku"]["list_price"]
+            item['brand_name'] = product["brand_name"]
+            item['rating'] = product["rating"]
+            items.append(item)
+        return items
